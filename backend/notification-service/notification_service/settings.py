@@ -1,17 +1,10 @@
 from pathlib import Path
 import os
 
-from dotenv import load_dotenv
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR.parent.parent / ".env")
-
-SECRET_KEY = os.getenv("NOTIFICATION_SERVICE_SECRET_KEY")
-if not SECRET_KEY:
-    raise RuntimeError("NOTIFICATION_SERVICE_SECRET_KEY is not set")
-
-DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+SECRET_KEY = 'notification-service-insecure-key'
+DEBUG = True
 
 ALLOWED_HOSTS = []
 

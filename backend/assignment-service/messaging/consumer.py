@@ -1,3 +1,4 @@
+
 import os
 import sys
 import django
@@ -12,10 +13,10 @@ import pika
 import json
 from assignments.tasks import process_ticket  # Celery task
 
-# Configuración RabbitMQ desde variables de entorno
-RABBIT_HOST = os.environ.get('RABBITMQ_HOST')
-EXCHANGE_NAME = os.environ.get('RABBITMQ_EXCHANGE_NAME')
-QUEUE_NAME = os.environ.get('RABBITMQ_QUEUE_ASSIGNMENT')
+# Configuración RabbitMQ
+RABBIT_HOST = 'rabbitmq'
+EXCHANGE_NAME = 'ticket_events'
+QUEUE_NAME = 'assignment_queue'  # Cola exclusiva para este servicio
 
 def callback(ch, method, properties, body):
     """Se llama cada vez que llega un mensaje a la cola"""
@@ -45,8 +46,9 @@ def start_consuming():
     channel.queue_bind(exchange=EXCHANGE_NAME, queue=QUEUE_NAME)
 
     channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback)
-    print(f"[ASSIGNMENT] Esperando eventos en cola '{QUEUE_NAME}'...")
+    print("[ASSIGNMENT] Esperando eventos ticket.created...")
     channel.start_consuming()
 
 if __name__ == "__main__":
     start_consuming()
+

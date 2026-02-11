@@ -22,8 +22,6 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
-    env_file:
-      - ./.env
     environment:
       DJANGO_SETTINGS_MODULE: ticket_service.settings
       DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
@@ -100,8 +98,6 @@ services:
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000 &
              celery -A assessment_service worker --loglevel=info"
-    env_file:
-      - ./.env
     environment:
       DJANGO_SETTINGS_MODULE: assessment_service.settings
       DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
@@ -126,8 +122,6 @@ services:
     volumes:
       - ./backend/assignment-service:/app
     command: python messaging/consumer.py
-    env_file:
-      - ./.env
     environment:
       DJANGO_SETTINGS_MODULE: assessment_service.settings
       POSTGRES_DB: assessment_db
@@ -165,8 +159,6 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
-    env_file:
-      - ./.env
     environment:
       DJANGO_SETTINGS_MODULE: notification_service.settings
       POSTGRES_DB: notifications_db
@@ -190,8 +182,6 @@ services:
     volumes:
       - ./backend/notification-service:/app
     command: python notifications/messaging/consumer.py
-    env_file:
-      - ./.env
     environment:
       DJANGO_SETTINGS_MODULE: notification_service.settings
       POSTGRES_DB: notifications_db

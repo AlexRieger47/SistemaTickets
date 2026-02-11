@@ -13,10 +13,9 @@ import pika
 import json
 from notifications.models import Notification
 
-# Configuración RabbitMQ desde variables de entorno
-RABBIT_HOST = os.environ.get('RABBITMQ_HOST')
-EXCHANGE_NAME = os.environ.get('RABBITMQ_EXCHANGE_NAME')
-QUEUE_NAME = os.environ.get('RABBITMQ_QUEUE_NOTIFICATION')
+RABBIT_HOST = os.environ.get('RABBITMQ_HOST', 'rabbitmq')
+EXCHANGE_NAME = 'ticket_events'
+QUEUE_NAME = 'notification_queue'  # Cola exclusiva para notificaciones
 
 
 def callback(ch, method, properties, body):
@@ -42,7 +41,7 @@ def start_consuming():
     channel.queue_bind(exchange=EXCHANGE_NAME, queue=QUEUE_NAME)
     
     channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback)
-    print(f'[NOTIFICATION] Consumer started, waiting messages on queue "{QUEUE_NAME}"...')
+    print('[NOTIFICATION] Consumer started, waiting messages...')
     channel.start_consuming()
 
 
