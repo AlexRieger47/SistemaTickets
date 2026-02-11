@@ -661,7 +661,6 @@ El proyecto demuestra una base sólida con múltiples implementaciones que sigue
 - Entendimiento de REST y HTTP
 - Preocupación por rendimiento (índices, update_fields)
 - Testing comprehensivo con mocks
-- Configuración para múltiples entornos
 - Seguridad básica implementada
 
 Estos fundamentos proporcionan una excelente base para continuar el desarrollo del sistema.

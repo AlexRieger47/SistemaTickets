@@ -121,11 +121,13 @@ Cada microservicio es:
 
 ## ⚙️ Requisitos previos
 
-* Docker
-* Docker Compose
+* Docker / **Podman** (alternativa compatible)
+* Docker Compose / **podman-compose**
 * Git
 
-> ⚠️ No es necesario instalar Python ni Node.js localmente si el proyecto se ejecuta completamente con Docker.
+> ⚠️ No es necesario instalar Python ni Node.js localmente si el proyecto se ejecuta completamente con contenedores.
+>
+> 💡 **Nota sobre Podman:** Si tu empresa no permite Docker, puedes usar **Podman** como alternativa. Simplemente reemplaza `docker-compose` por `podman-compose` en todos los comandos.
 
 ---
 
@@ -140,9 +142,18 @@ cd SistemaTickets
 
 ### 2️⃣ Construir y levantar los contenedores
 
+**Con Docker:**
+
 ```bash
 docker-compose build
-docker-compose up
+docker-compose up -d
+```
+
+**Con Podman:**
+
+```bash
+podman-compose build
+podman-compose up -d
 ```
 
 Esto levantará:
@@ -154,16 +165,65 @@ Esto levantará:
 * PostgreSQL
 * Frontend React
 
+### 3️⃣ Verificar que los servicios estén corriendo
+
+```bash
+# Con Docker
+docker-compose ps
+
+# Con Podman
+podman-compose ps
+```
+
+Todos los servicios deben mostrar estado `Up`.
+
+### 4️⃣ Crear superusuarios (Opcional)
+
+Para acceder al panel de administración de Django de cada servicio:
+
+**Ticket Service:**
+```bash
+podman exec -it sistema-tickets-backend python manage.py createsuperuser
+```
+
+**Notification Service:**
+```bash
+podman exec -it notification-service python manage.py createsuperuser
+```
+
+**Assignment Service:**
+```bash
+podman exec -it assessment-service-backend python manage.py createsuperuser
+```
+
+> 💡 **Superusuarios creados automáticamente:**
+> - Usuario: `admin`
+> - Contraseña: `admin123`
+> - Estos se crean durante el primer `podman-compose up` si no existen
+
 ---
 
 ## 🌐 Accesos
 
-* **Frontend:** [http://localhost:5173](http://localhost:5173)
-* **Ticket Service API:** [http://localhost:8000/api/tickets/](http://localhost:8000/api/tickets/)
-* **RabbitMQ Management:** [http://localhost:15672](http://localhost:15672)
+### Frontend
+* **Tickets Frontend:** [http://localhost:5173](http://localhost:5173)
+* **Notifications Frontend:** [http://localhost:5174](http://localhost:5174)
 
+### APIs Backend
+* **Ticket Service API:** [http://localhost:8000/api/tickets/](http://localhost:8000/api/tickets/)
+* **Ticket Service Admin:** [http://localhost:8000/admin/](http://localhost:8000/admin/)
+* **Notification Service API:** [http://localhost:8001/api/notifications/](http://localhost:8001/api/notifications/)
+* **Notification Service Admin:** [http://localhost:8001/admin/](http://localhost:8001/admin/)
+* **Assignment Service:** [http://localhost:8002](http://localhost:8002) *(No expone API REST pública)*
+
+### Infraestructura
+* **RabbitMQ Management:** [http://localhost:15672](http://localhost:15672)
   * Usuario: `guest`
   * Contraseña: `guest`
+
+### Credenciales Admin Django
+* Usuario: `admin`
+* Contraseña: `admin123`
 
 ---
 
@@ -173,15 +233,40 @@ Cuando existan cambios en el código:
 
 ```bash
 git pull
-docker-compose down
-docker-compose build
-docker-compose up
+podman-compose down
+podman-compose build
+podman-compose up -d
 ```
 
 Si solo hay cambios de código (sin nuevas dependencias):
 
 ```bash
-docker-compose restart
+podman-compose restart
+```
+
+## 🔍 Comandos útiles
+
+### Ver logs de un servicio
+```bash
+podman logs -f sistema-tickets-backend
+podman logs -f notification-service
+podman logs -f assessment-service-backend
+```
+
+### Ejecutar comandos dentro de un contenedor
+```bash
+podman exec -it sistema-tickets-backend python manage.py shell
+```
+
+### Detener todos los servicios
+```bash
+podman-compose down
+```
+
+### Reconstruir un servicio específico
+```bash
+podman-compose build backend
+podman-compose up -d backend
 ```
 
 ---
