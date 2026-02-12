@@ -5,12 +5,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements.txt /app/
+# Copy shared library first
+COPY shared/ /app/shared/
+
+# Copy notification service files
+COPY notification-service/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /app/
+COPY notification-service/ /app/
 
-COPY entrypoint.sh /app/entrypoint.sh
+COPY notification-service/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000

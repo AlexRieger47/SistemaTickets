@@ -1,50 +1,88 @@
+"""
+Consumidor RabbitMQ para el Servicio de Notificaciones.
+
+Escucha el exchange ticket_events y crea notificaciones
+cuando los tickets son creados o actualizados.
+
+Esta implementación usa el patrón Template Method de shared.messaging,
+eliminando la duplicación de setup de RabbitMQ.
+"""
+
 import os
 import sys
 import django
+import logging
 
 # Agregar directorio base al path
 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, base_dir)
 
+# Agregar shared al path (2 niveles arriba)
+shared_path = os.path.join(base_dir, '..', '..')
+sys.path.insert(0, shared_path)
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "notification_service.settings")
 django.setup()
 
-import pika
-import json
-from notifications.models import Notification
+from shared.messaging.base_consumer import BaseRabbitMQConsumer
+from notifications.messaging.handlers import handle_ticket_created
 
-# Configuración RabbitMQ desde variables de entorno
-RABBIT_HOST = os.environ.get('RABBITMQ_HOST')
-EXCHANGE_NAME = os.environ.get('RABBITMQ_EXCHANGE_NAME')
-QUEUE_NAME = os.environ.get('RABBITMQ_QUEUE_NOTIFICATION')
+logger = logging.getLogger(__name__)
 
 
-def callback(ch, method, properties, body):
-    data = json.loads(body)
-    ticket_id = data.get('ticket_id')
-    # Crear una notificación básica en la BD
-    Notification.objects.create(ticket_id=str(ticket_id), message=f"Ticket {ticket_id} creado")
-    print(f"[NOTIFICATION] Notification created for ticket {ticket_id}")
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-
-
-def start_consuming():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBIT_HOST))
-    channel = connection.channel()
+class NotificationConsumer(BaseRabbitMQConsumer):
+    """
+    Consumidor para el Servicio de Notificaciones.
     
-    # Declarar exchange
-    channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='fanout', durable=True)
+    Escucha el exchange 'ticket_events' en la cola 'notification_queue'.
+    Cuando llega un evento ticket.created, crea un registro de notificación.
     
-    # Crear cola exclusiva para notificaciones
-    channel.queue_declare(queue=QUEUE_NAME, durable=True)
+    Implementación:
+    - Extiende BaseRabbitMQConsumer (Template Method)
+    - Solo implementa: hooks de configuración + lógica de negocio
+    - Todo el setup de RabbitMQ es manejado por la clase base (60+ líneas eliminadas)
     
-    # Vincular cola al exchange
-    channel.queue_bind(exchange=EXCHANGE_NAME, queue=QUEUE_NAME)
+    Beneficios:
+    - Sin duplicación de setup RabbitMQ
+    - Simple de testear (mock de handle_message)
+    - Fácil de mantener (cambiar exchange: 1 lugar)
+    """
     
-    channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback)
-    print(f'[NOTIFICATION] Consumer started, waiting messages on queue "{QUEUE_NAME}"...')
-    channel.start_consuming()
+    def get_exchange_name(self) -> str:
+        """Exchange donde se publican los eventos de tickets."""
+        return os.getenv('RABBITMQ_EXCHANGE_NAME', 'ticket_events')
+    
+    def get_queue_name(self) -> str:
+        """Cola exclusiva para el servicio de notificaciones."""
+        return os.getenv('RABBITMQ_QUEUE_NOTIFICATION', 'notification_queue')
+    
+    def get_routing_key(self) -> str:
+        """
+        Routing key para el binding.
+        String vacío para exchange fanout (recibe todos los mensajes).
+        """
+        return ''
+    
+    def handle_message(self, message: dict) -> None:
+        """
+        Lógica de negocio: procesar eventos de tickets.
+        
+        Delega al handler que crea registros de notificación.
+        
+        Args:
+            message: Datos del evento con ticket_id
+        """
+        logger.info(f"🔔 Procesando evento de ticket: {message}")
+        handle_ticket_created(message)
 
 
 if __name__ == '__main__':
-    start_consuming()
+    # Configurar logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    # Iniciar consumidor
+    consumer = NotificationConsumer()
+    consumer.start_consuming()
