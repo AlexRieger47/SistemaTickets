@@ -12,7 +12,7 @@ const NotificationItem = ({
   onMarkAsRead,
   onDelete,
 }: NotificationItemProps) => {
-  const { id, title, message, read, createdAt } = notification;
+  const { id, title, description, message, read, createdAt } = notification;
 
   return (
     <div className={`notification-item ${read ? 'read' : 'unread'}`}>
@@ -21,7 +21,13 @@ const NotificationItem = ({
           <h4 className="notification-title">{title}</h4>
         </div>
 
-        <p className="notification-description">{message}</p>
+        {description && (
+          <p className="notification-description">{description}</p>
+        )}
+        
+        {message && (
+          <p className="notification-message">{message}</p>
+        )}
 
         <div className="notification-footer">
           <div className="time-info">

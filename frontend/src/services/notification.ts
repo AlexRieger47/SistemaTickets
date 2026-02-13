@@ -5,6 +5,8 @@ import { notificationApiClient } from './axiosConfig';
 interface NotificationApiResponse {
   id: number;
   ticket_id: string;
+  ticket_title: string;
+  ticket_description: string;
   message: string;
   sent_at: string;
   read: boolean;
@@ -13,7 +15,9 @@ interface NotificationApiResponse {
 // Adapter function
 const adaptNotification = (apiData: NotificationApiResponse): Notification => ({
   id: apiData.id.toString(),
-  title: `Ticket #${apiData.ticket_id}`,
+  ticketId: apiData.ticket_id,
+  title: apiData.ticket_title || `Ticket #${apiData.ticket_id}`,
+  description: apiData.ticket_description,
   message: apiData.message,
   read: apiData.read,
   createdAt: apiData.sent_at,
