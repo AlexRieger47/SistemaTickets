@@ -21,6 +21,8 @@ class Notification:
     # Atributos de la entidad
     id: Optional[int]
     ticket_id: str
+    ticket_title: str
+    ticket_description: str
     message: str
     sent_at: datetime
     read: bool = False

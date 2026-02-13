@@ -30,13 +30,17 @@ class DjangoNotificationRepository(NotificationRepository):
             # Actualizar notificación existente
             django_notification = DjangoNotification.objects.get(pk=notification.id)
             django_notification.ticket_id = notification.ticket_id
+            django_notification.ticket_title = notification.ticket_title
+            django_notification.ticket_description = notification.ticket_description
             django_notification.message = notification.message
             django_notification.read = notification.read
-            django_notification.save(update_fields=['ticket_id', 'message', 'read'])
+            django_notification.save(update_fields=['ticket_id', 'ticket_title', 'ticket_description', 'message', 'read'])
         else:
             # Crear nueva notificación
             django_notification = DjangoNotification.objects.create(
                 ticket_id=notification.ticket_id,
+                ticket_title=notification.ticket_title,
+                ticket_description=notification.ticket_description,
                 message=notification.message,
                 read=notification.read
             )
@@ -94,6 +98,8 @@ class DjangoNotificationRepository(NotificationRepository):
         return DjangoNotification(
             id=domain_notification.id,
             ticket_id=domain_notification.ticket_id,
+            ticket_title=domain_notification.ticket_title,
+            ticket_description=domain_notification.ticket_description,
             message=domain_notification.message,
             sent_at=domain_notification.sent_at,
             read=domain_notification.read
@@ -112,6 +118,8 @@ class DjangoNotificationRepository(NotificationRepository):
         return DomainNotification(
             id=django_notification.id,
             ticket_id=django_notification.ticket_id,
+            ticket_title=django_notification.ticket_title,
+            ticket_description=django_notification.ticket_description,
             message=django_notification.message,
             sent_at=django_notification.sent_at,
             read=django_notification.read

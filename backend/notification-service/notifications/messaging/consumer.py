@@ -22,9 +22,17 @@ QUEUE_NAME = os.environ.get('RABBITMQ_QUEUE_NOTIFICATION')
 def callback(ch, method, properties, body):
     data = json.loads(body)
     ticket_id = data.get('ticket_id')
-    # Crear una notificación básica en la BD
-    Notification.objects.create(ticket_id=str(ticket_id), message=f"Ticket {ticket_id} creado")
-    print(f"[NOTIFICATION] Notification created for ticket {ticket_id}")
+    ticket_title = data.get('title', 'Sin título')
+    ticket_description = data.get('description', '')
+    
+    # Crear una notificación con información completa del ticket
+    Notification.objects.create(
+        ticket_id=str(ticket_id),
+        ticket_title=ticket_title,
+        ticket_description=ticket_description,
+        message=f"Nuevo ticket creado: {ticket_title} ID: {ticket_id}"
+    )
+    print(f"[NOTIFICATION] Notification created for ticket {ticket_id}: {ticket_title}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
