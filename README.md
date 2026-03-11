@@ -263,7 +263,7 @@ docker-compose up frontend
 Una vez levantados los servicios, verifica:
 
 * **Frontend** accesible en http://localhost:5173
-* **RabbitMQ Management** accesible en http://localhost:15672
+* **RabbitMQ Management** accesible en http://localhost:15972
 * **APIs** respondiendo en sus respectivos puertos
 
 ---
@@ -284,16 +284,27 @@ Una vez levantados los servicios, verifica:
 
 ### Infraestructura
 
-* **RabbitMQ Management:** http://localhost:15672
+* **RabbitMQ Management:** http://localhost:15972
   * Usuario: `guest`
   * Contraseña: `guest`
   
 ### Bases de Datos PostgreSQL
 
-* **Ticket DB:** `localhost:5432` (sistema_tickets)
-* **Assignment DB:** `localhost:5433` (assessment_db)
-* **Notification DB:** `localhost:5434` (notifications_db)
-* **Users DB:** `localhost:5435` (users_db)
+* **Ticket DB:** `localhost:15432` (sistema_tickets)
+* **Assignment DB:** `localhost:15433` (assessment_db)
+* **Notification DB:** `localhost:15434` (notifications_db)
+* **Users DB:** `localhost:15435` (users_db)
+
+Si necesitas otros puertos para tests locales o por colisiones en tu host, define estas variables en `.env` antes de levantar Docker:
+
+```env
+TICKETS_DB_PORT=15432
+ASSESSMENT_DB_PORT=15433
+NOTIFICATION_DB_PORT=15434
+USERS_DB_PORT=15435
+RABBITMQ_PORT=5972
+RABBITMQ_MANAGEMENT_PORT=15972
+```
 
 ---
 
